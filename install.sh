@@ -1,35 +1,26 @@
 #!/bin/bash
 
-set -e
-
 APP_NAME="spotifetch"
 INSTALL_DIR="$HOME/.spotifetch"
-VENV_DIR="$INSTALL_DIR/venv"
 SCRIPT_NAME="spotifetch.py"
 LAUNCHER="$HOME/.local/bin/$APP_NAME"
-
-echo "-> Creating virtual environment at $VENV_DIR"
-python3 -m venv "$VENV_DIR"
-source "$VENV_DIR/bin/activate"
-
+REQ_FILE="$(dirname "$0")/req.txt"
 echo "-> Installing dependencies"
-pip install --upgrade pip
-pip install -r req.txt
-
+pip3 install --user --upgrade pip
+pip3 install --user -r "$REQ_FILE"
 echo "-> Copying script to $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 cp "$SCRIPT_NAME" "$INSTALL_DIR/$SCRIPT_NAME"
-
 echo "-> Creating launcher at $LAUNCHER"
 mkdir -p "$HOME/.local/bin"
-
 cat > "$LAUNCHER" <<EOF
 #!/bin/bash
-source "$VENV_DIR/bin/activate"
-python "$INSTALL_DIR/$SCRIPT_NAME" "\$@"
+python3 "$INSTALL_DIR/$SCRIPT_NAME" "\$@"
 EOF
 
 chmod +x "$LAUNCHER"
-
-echo "Spotifetch has been installed successfully!"
-echo "Type Spotifetch --help for help"
+if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+fi
+source ~/.bashrc
+echo "👉 Type: spotifetch --help"
