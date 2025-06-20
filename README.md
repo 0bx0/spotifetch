@@ -80,17 +80,7 @@ Then reload your terminal:
  source ~/.bashrc
 ```
 
-🛠 Future Fixes (copium)
-
-    I’ll fix the install.sh script when my brain stops leaking.
-
-    Proper support for Linux packaging… someday.
-
-    Maybe a .deb package? Maybe not.
-
-🐸 Final Thoughts
-
-Don’t expect this to change your life. It prints your Spotify stats next to an ASCII logo. That’s it. It’s dumb. I love it.
-
-Pull requests welcome.
-Bugs ignored affectionately.
+## Future Fixes / TODO
+- Fix the install script
+- Perchance make this an actual .deb package
+- Stop the authenticator from running every time you run the command (i'm sorry that is so annoying but i'm so lazy)
