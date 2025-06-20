@@ -1,4 +1,4 @@
-#🎧 Spotifetch
+# Spotifetch
 
 >   WARNING: installation is still broken, running the install script does absolutely nothing. I'll fix it eventually. Maybe.
 
