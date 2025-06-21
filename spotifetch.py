@@ -50,12 +50,47 @@ def spoti_return():
 def run_flask():
     app.run(port=8888)
 
-# PKCE Auth
+import json
+
+TOKEN_CACHE_PATH = os.path.expanduser("~/.spotifetch/token.json")
+
+def load_token():
+    if os.path.exists(TOKEN_CACHE_PATH):
+        with open(TOKEN_CACHE_PATH, "r") as f:
+            return json.load(f)
+    return None
+
+def save_token(token_data):
+    os.makedirs(os.path.dirname(TOKEN_CACHE_PATH), exist_ok=True)
+    with open(TOKEN_CACHE_PATH, "w") as f:
+        json.dump(token_data, f)
+
+def refresh_access_token(refresh_token):
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'client_id': CID
+    }
+    res = requests.post("https://accounts.spotify.com/api/token", data=data)
+    res.raise_for_status()
+    token_data = res.json()
+    token_data['refresh_token'] = token_data.get('refresh_token', refresh_token)
+    save_token(token_data)
+    return token_data['access_token']
+
 def authenticate_user():
+    # If cached token exists, use it
+    token_data = load_token()
+    if token_data:
+        if 'refresh_token' in token_data:
+            return refresh_access_token(token_data['refresh_token'])
+        return token_data['access_token']
+
+    # Else do full PKCE auth flow
     global CODE
     code_verifier, code_chall = generate_pkce_pair()
 
-    auth_url = (        
+    auth_url = (
         f"https://accounts.spotify.com/authorize"
         f"?client_id={CID}"
         f"&response_type=code"
@@ -64,10 +99,10 @@ def authenticate_user():
         f"&code_challenge={code_chall}"
         f"&code_challenge_method=S256"
     )
-    
+
     threading.Thread(target=run_flask, daemon=True).start()
     webbrowser.open(auth_url)
-    
+
     while CODE is None:
         pass
 
@@ -81,7 +116,9 @@ def authenticate_user():
 
     res = requests.post("https://accounts.spotify.com/api/token", data=data)
     res.raise_for_status()
-    return res.json()['access_token']
+    token_data = res.json()
+    save_token(token_data)
+    return token_data['access_token']
 
 # Scope for neccesary permissions 
 scope = 'user-library-read ' \
@@ -253,3 +290,11 @@ if not args:
     fetch_user_information()
 else:
     fetch_song_details(' '.join(args))
+
+
+try:
+    import subprocess
+    subprocess.run(["deactivate"])
+
+except Exception as e:
+    pass
